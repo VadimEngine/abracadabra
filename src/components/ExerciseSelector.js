@@ -41,6 +41,7 @@ function ExerciseSelector({
 }) {
   const [previewExercise, setPreviewExercise] = useState(null);
   const [equipOpen, setEquipOpen] = useState(false);
+  const [timerOpen, setTimerOpen] = useState(false);
 
   // Only show exercises whose required equipment is currently enabled
   const visibleExercises = exercises.filter(e =>
@@ -61,49 +62,62 @@ function ExerciseSelector({
     <div className="setup-tab">
       {/* Timer settings */}
       <div className="setup-card">
-        <div className="card-title">Timer</div>
-        <Stepper
-          label="Work"
-          value={intervalTime}
-          unit="s"
-          onDecrement={() => onIntervalTimeChange(t => clamp(t - 5, 5, 300))}
-          onIncrement={() => onIntervalTimeChange(t => clamp(t + 5, 5, 300))}
-        />
-        <Stepper
-          label="Break"
-          value={breakTime}
-          unit="s"
-          onDecrement={() => onBreakTimeChange(t => clamp(t - 5, 5, 300))}
-          onIncrement={() => onBreakTimeChange(t => clamp(t + 5, 5, 300))}
-        />
+        <button className="card-collapse-btn" onClick={() => setTimerOpen(o => !o)}>
+          <span className="card-title">Timer</span>
+          {!timerOpen && (
+            <span className="timer-summary">
+              {intervalTime}s work · {breakTime}s break
+              {restEnabled ? ` · rest /${restEvery}` : ''}
+            </span>
+          )}
+          <span className="card-chevron">{timerOpen ? '▴' : '▾'}</span>
+        </button>
 
-        {/* Rest interval toggle */}
-        <div
-          className="toggle-row"
-          onClick={() => onRestEnabledChange(!restEnabled)}
-        >
-          <span className="stepper-label">Rest intervals</span>
-          <div className={`toggle ${restEnabled ? 'on' : ''}`}>
-            <div className="toggle-knob" />
-          </div>
-        </div>
-
-        {restEnabled && (
+        {timerOpen && (
           <>
             <Stepper
-              label="Rest every"
-              value={restEvery}
-              unit=" rds"
-              onDecrement={() => onRestEveryChange(r => clamp(r - 1, 2, 10))}
-              onIncrement={() => onRestEveryChange(r => clamp(r + 1, 2, 10))}
+              label="Work"
+              value={intervalTime}
+              unit="s"
+              onDecrement={() => onIntervalTimeChange(t => clamp(t - 5, 5, 300))}
+              onIncrement={() => onIntervalTimeChange(t => clamp(t + 5, 5, 300))}
             />
             <Stepper
-              label="Rest time"
-              value={restTime}
+              label="Break"
+              value={breakTime}
               unit="s"
-              onDecrement={() => onRestTimeChange(t => clamp(t - 5, 10, 300))}
-              onIncrement={() => onRestTimeChange(t => clamp(t + 5, 10, 300))}
+              onDecrement={() => onBreakTimeChange(t => clamp(t - 5, 5, 300))}
+              onIncrement={() => onBreakTimeChange(t => clamp(t + 5, 5, 300))}
             />
+
+            <div
+              className="toggle-row"
+              onClick={() => onRestEnabledChange(!restEnabled)}
+            >
+              <span className="stepper-label">Rest intervals</span>
+              <div className={`toggle ${restEnabled ? 'on' : ''}`}>
+                <div className="toggle-knob" />
+              </div>
+            </div>
+
+            {restEnabled && (
+              <>
+                <Stepper
+                  label="Rest every"
+                  value={restEvery}
+                  unit=" rds"
+                  onDecrement={() => onRestEveryChange(r => clamp(r - 1, 2, 10))}
+                  onIncrement={() => onRestEveryChange(r => clamp(r + 1, 2, 10))}
+                />
+                <Stepper
+                  label="Rest time"
+                  value={restTime}
+                  unit="s"
+                  onDecrement={() => onRestTimeChange(t => clamp(t - 5, 10, 300))}
+                  onIncrement={() => onRestTimeChange(t => clamp(t + 5, 10, 300))}
+                />
+              </>
+            )}
           </>
         )}
       </div>

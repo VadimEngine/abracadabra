@@ -35,6 +35,40 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
+/* ── Collapsible card header ─────────────────────────────────── */
+.card-collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  text-align: left;
+}
+
+.card-collapse-btn:active {
+  opacity: 0.7;
+}
+
+.timer-summary {
+  flex: 1;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-chevron {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
 /* ── Stepper ─────────────────────────────────────────────────── */
 .stepper-row {
   display: flex;
