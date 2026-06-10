@@ -112,7 +112,10 @@ function App() {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance('Side Bridge. 3, 2, 1. Begin! Switch sides.');
     const v = voices.find(vv => vv.voiceURI === selectedVoiceURI);
-    if (v) u.voice = v;
+    if (v) {
+      u.voice = v;
+      u.lang  = v.lang;
+    }
     window.speechSynthesis.speak(u);
   };
 
