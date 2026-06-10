@@ -1,0 +1,263 @@
+/* ── App shell ───────────────────────────────────────────────── */
+.app {
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #111;
+  color: #e8e8e8;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.app-header {
+  flex-shrink: 0;
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.app-header h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #f0f0f0;
+  text-transform: uppercase;
+}
+
+/* ── Hamburger button ────────────────────────────────────────── */
+.hamburger-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.hamburger-btn:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 1px;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  transform-origin: center;
+}
+
+.hamburger-btn.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger-btn.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburger-btn.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── Settings panel ──────────────────────────────────────────── */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+}
+
+.settings-panel {
+  position: absolute;
+  top: 49px;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: #1c1c1c;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-label {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.settings-label-sm {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.voice-list {
+  max-height: 168px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.voice-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.voice-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.voice-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+}
+
+.voice-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 222, 128, 0.45);
+}
+
+.voice-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.84rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  gap: 8px;
+}
+
+.voice-item:last-child {
+  border-bottom: none;
+}
+
+.voice-item:active {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.voice-item.selected {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.07);
+}
+
+.voice-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.voice-lang {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.28);
+  font-variant-numeric: tabular-nums;
+}
+
+.voice-item.selected .voice-lang {
+  color: rgba(74, 222, 128, 0.5);
+}
+
+.voice-empty {
+  padding: 12px;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.35);
+  text-align: center;
+}
+
+.voice-test-btn {
+  padding: 5px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.voice-test-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+  color: #e8e8e8;
+}
+
+/* ── Tab content ─────────────────────────────────────────────── */
+.tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Bottom navigation ───────────────────────────────────────── */
+.bottom-nav {
+  flex-shrink: 0;
+  display: flex;
+  background: #1a1a1a;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 13px 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  position: relative;
+}
+
+.nav-btn.active {
+  color: #e8e8e8;
+  font-weight: 600;
+}
+
+.nav-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 2px;
+  background: #4ade80;
+  border-radius: 1px 1px 0 0;
+}

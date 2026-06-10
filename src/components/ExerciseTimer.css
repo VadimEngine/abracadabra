@@ -1,0 +1,197 @@
+/* ── Workout tab shell ───────────────────────────────────────── */
+.workout-tab {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 10px 12px 12px;
+  gap: 10px;
+  overflow: hidden;
+}
+
+/* ── Exercise / state display ────────────────────────────────── */
+.exercise-display {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.exercise-gif {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+}
+
+.exercise-name {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 8px 14px 10px;
+  color: #e8e8e8;
+}
+
+/* Get Ready banner (sits between GIF and exercise name) */
+.get-ready-banner {
+  flex-shrink: 0;
+  width: 100%;
+  padding: 6px 12px;
+  background: rgba(109, 40, 217, 0.55);
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: white;
+}
+
+/* Switch Sides banner */
+.switch-banner {
+  flex-shrink: 0;
+  width: 100%;
+  padding: 6px 12px;
+  background: rgba(245, 158, 11, 0.55);
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: white;
+}
+
+/* Gap phase (break / rest) info panel */
+.gap-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.gap-heading {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.04em;
+}
+
+.next-up {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.35);
+  font-style: italic;
+}
+
+.done-text {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.03em;
+}
+
+/* ── Timer display ───────────────────────────────────────────── */
+.timer-display {
+  flex-shrink: 0;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.4s ease;
+}
+
+.timer-display.get-ready {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+}
+
+.timer-display.work {
+  background: linear-gradient(135deg, #ff4d6d 0%, #c9184a 100%);
+}
+
+.timer-display.switch {
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+}
+
+.timer-display.break {
+  background: linear-gradient(135deg, #0096c7 0%, #023e8a 100%);
+}
+
+.timer-display.rest {
+  background: linear-gradient(135deg, #0d9488 0%, #134e4a 100%);
+}
+
+.timer-display.finished {
+  background: linear-gradient(135deg, #2dc653 0%, #028a48 100%);
+}
+
+.timer-display.pulse {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.025); }
+}
+
+.phase-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0.78;
+}
+
+.time-digits {
+  font-size: 3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+  line-height: 1;
+}
+
+.progress-label {
+  font-size: 0.74rem;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+
+/* ── Controls ────────────────────────────────────────────────── */
+.timer-controls {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+}
+
+.ctrl-btn {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 11px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s, transform 0.1s;
+}
+
+.ctrl-btn:active {
+  opacity: 0.8;
+  transform: scale(0.97);
+}
+
+.ctrl-btn.primary {
+  background: #e8e8e8;
+  color: #111;
+}
+
+.ctrl-btn.secondary {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
