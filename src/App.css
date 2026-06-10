@@ -1,6 +1,7 @@
 /* ── App shell ───────────────────────────────────────────────── */
 .app {
-  height: 100vh;
+  height: 100vh;        /* fallback for older browsers */
+  height: 100dvh;       /* dynamic: shrinks when Chrome tab bar / address bar is visible */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -115,6 +116,11 @@
 .settings-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.07);
+}
+
+.toggle-sm {
+  transform: scale(0.78);
+  transform-origin: right center;
 }
 
 .voice-list {

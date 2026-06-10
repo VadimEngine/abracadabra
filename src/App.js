@@ -7,6 +7,7 @@ import exercises from './data/exercises.json';
 const LS_EXCLUDED     = 'abra-excluded';
 const LS_VOICE_ON     = 'abra-voice-enabled';
 const LS_VOICE_URI    = 'abra-voice-uri';
+const LS_VOICE_LOCAL  = 'abra-voice-local';
 const LS_EQUIPMENT    = 'abra-equipment';
 const LS_INTERVAL     = 'abra-interval';
 const LS_BREAK        = 'abra-break';
@@ -53,6 +54,7 @@ function App() {
   const [voiceEnabled, setVoiceEnabled] = useState(() => lsGet(LS_VOICE_ON, true));
   const [voices, setVoices] = useState([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState(() => localStorage.getItem(LS_VOICE_URI) || '');
+  const [localVoicesOnly, setLocalVoicesOnly] = useState(() => lsGet(LS_VOICE_LOCAL, false));
 
   // Settings panel
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -81,6 +83,10 @@ function App() {
   useEffect(() => {
     if (selectedVoiceURI) localStorage.setItem(LS_VOICE_URI, selectedVoiceURI);
   }, [selectedVoiceURI]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_VOICE_LOCAL, JSON.stringify(localVoicesOnly));
+  }, [localVoicesOnly]);
 
   // ── Load TTS voices ──────────────────────────────────────────
   useEffect(() => {
@@ -188,11 +194,20 @@ function App() {
                   <span className="settings-label-sm">Voice</span>
                   <button className="voice-test-btn" onClick={testVoice}>▶ Test</button>
                 </div>
+                <div className="settings-row">
+                  <span className="settings-label-sm">Device voices only</span>
+                  <div
+                    className={`toggle toggle-sm ${localVoicesOnly ? 'on' : ''}`}
+                    onClick={() => setLocalVoicesOnly(v => !v)}
+                  >
+                    <div className="toggle-knob" />
+                  </div>
+                </div>
                 <div className="voice-list">
                   {voices.length === 0 && (
                     <p className="voice-empty">No voices available</p>
                   )}
-                  {voices.map(v => (
+                  {(localVoicesOnly ? voices.filter(v => v.localService) : voices).map(v => (
                     <button
                       key={v.voiceURI}
                       className={`voice-item${v.voiceURI === selectedVoiceURI ? ' selected' : ''}`}

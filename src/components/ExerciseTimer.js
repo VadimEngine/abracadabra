@@ -64,7 +64,10 @@ function ExerciseTimer({
     const u = new SpeechSynthesisUtterance(text);
     if (uri && v.length > 0) {
       const voice = v.find(vv => vv.voiceURI === uri);
-      if (voice) u.voice = voice;
+      if (voice) {
+        u.voice = voice;
+        u.lang  = voice.lang; // Android ignores u.voice but respects u.lang
+      }
     }
     window.speechSynthesis.speak(u);
   };
