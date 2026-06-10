@@ -174,7 +174,7 @@ function ExerciseSelector({
                 </div>
                 <span className="check-label">{ex.name}</span>
                 <img
-                  src={ex.gif}
+                  src={process.env.PUBLIC_URL + ex.gif}
                   alt={ex.name}
                   className="exercise-thumb"
                   onClick={e => { e.stopPropagation(); setPreviewExercise(ex); }}
@@ -200,7 +200,7 @@ function ExerciseSelector({
         <div className="preview-overlay" onClick={() => setPreviewExercise(null)}>
           <div className="preview-card" onClick={e => e.stopPropagation()}>
             <img
-              src={previewExercise.gif}
+              src={process.env.PUBLIC_URL + previewExercise.gif}
               alt={previewExercise.name}
               className="preview-gif"
             />

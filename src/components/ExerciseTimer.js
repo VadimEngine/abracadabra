@@ -177,7 +177,7 @@ function ExerciseTimer({
         ) : (
           <>
             <img
-              src={currentExercise.gif}
+              src={process.env.PUBLIC_URL + currentExercise.gif}
               alt={currentExercise.name}
               className="exercise-gif"
             />
