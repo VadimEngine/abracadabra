@@ -173,10 +173,21 @@ function ExerciseTimer({
         {isFinished ? (
           <p className="done-text">Workout Complete!</p>
         ) : isGapPhase ? (
-          <div className="gap-info">
-            <p className="gap-heading">{phaseType === 'rest' ? 'Rest' : 'Break'}</p>
-            {nextExercise && <p className="next-up">Next: {nextExercise.name}</p>}
-          </div>
+          nextExercise ? (
+            <>
+              <img
+                src={process.env.PUBLIC_URL + nextExercise.gif}
+                alt={nextExercise.name}
+                className="exercise-gif break-gif"
+              />
+              <div className="break-banner">{phaseType === 'rest' ? 'Rest' : 'Break'}</div>
+              <h2 className="exercise-name">Next: {nextExercise.name}</h2>
+            </>
+          ) : (
+            <div className="gap-info">
+              <p className="gap-heading">{phaseType === 'rest' ? 'Rest' : 'Break'}</p>
+            </div>
+          )
         ) : (
           <>
             <img
@@ -184,11 +195,12 @@ function ExerciseTimer({
               alt={currentExercise.name}
               className="exercise-gif"
             />
-            {phaseType === 'getReady' && (
+            {phaseType === 'getReady' ? (
               <div className="get-ready-banner">Get Ready</div>
-            )}
-            {phaseType === 'switch' && (
+            ) : phaseType === 'switch' ? (
               <div className="switch-banner">Switch Sides</div>
+            ) : (
+              <div className="work-banner">Work</div>
             )}
             <h2 className="exercise-name">{currentExercise.name}</h2>
           </>

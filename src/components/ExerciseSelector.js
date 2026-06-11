@@ -219,6 +219,11 @@ function ExerciseSelector({
               className="preview-gif"
             />
             <p className="preview-name">{previewExercise.name}</p>
+            <p className="preview-equipment">
+              {previewExercise.equipment.length > 0
+                ? previewExercise.equipment.join(', ')
+                : 'No equipment'}
+            </p>
             <button
               className="preview-close"
               onClick={() => setPreviewExercise(null)}
