@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import ExerciseSelector from './components/ExerciseSelector';
 import ExerciseTimer from './components/ExerciseTimer';
+import WorkoutLists from './components/WorkoutLists';
 import exercises from './data/exercises.json';
 
 const LS_EXCLUDED     = 'abra-excluded';
 const LS_VOICE_ON     = 'abra-voice-enabled';
 const LS_VOICE_URI    = 'abra-voice-uri';
-const LS_VOICE_LOCAL  = 'abra-voice-local';
 const LS_EQUIPMENT    = 'abra-equipment';
 const LS_INTERVAL     = 'abra-interval';
 const LS_BREAK        = 'abra-break';
@@ -15,6 +15,12 @@ const LS_ROUNDS       = 'abra-rounds';
 const LS_REST_ON      = 'abra-rest-enabled';
 const LS_REST_EVERY   = 'abra-rest-every';
 const LS_REST_TIME    = 'abra-rest-time';
+const LS_LISTS        = 'abra-lists';
+const LS_ACTIVE_LIST  = 'abra-active-list';
+
+const randomId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+const DEFAULT_LIST = { id: 'list-default', name: 'My Workout', exercises: [] };
 
 // All unique equipment types found in the data
 const ALL_EQUIPMENT = [...new Set(exercises.flatMap(e => e.equipment))].sort();
@@ -38,6 +44,21 @@ function App() {
   const [workout, setWorkout] = useState(null);
   const [activeTab, setActiveTab] = useState('setup');
 
+  const [workoutLists, setWorkoutLists] = useState(() => {
+    const saved = lsGet(LS_LISTS, null);
+    if (saved && Array.isArray(saved) && saved.length > 0) return saved;
+    return [DEFAULT_LIST];
+  });
+
+  const [activeListId, setActiveListId] = useState(() => {
+    const savedLists = lsGet(LS_LISTS, null);
+    const lists = (savedLists && Array.isArray(savedLists) && savedLists.length > 0)
+      ? savedLists : [DEFAULT_LIST];
+    const savedId = lsGet(LS_ACTIVE_LIST, null);
+    if (savedId && lists.some(l => l.id === savedId)) return savedId;
+    return lists[0].id;
+  });
+
   // Persisted: excluded exercises
   const [selectedIds, setSelectedIds] = useState(() => {
     const excluded = new Set(lsGet(LS_EXCLUDED, []));
@@ -54,10 +75,10 @@ function App() {
   const [voiceEnabled, setVoiceEnabled] = useState(() => lsGet(LS_VOICE_ON, true));
   const [voices, setVoices] = useState([]);
   const [selectedVoiceURI, setSelectedVoiceURI] = useState(() => localStorage.getItem(LS_VOICE_URI) || '');
-  const [localVoicesOnly, setLocalVoicesOnly] = useState(() => lsGet(LS_VOICE_LOCAL, false));
 
   // Settings panel
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const voiceListRef = useRef(null);
 
   // ── Persistence effects ──────────────────────────────────────
   useEffect(() => {
@@ -85,8 +106,22 @@ function App() {
   }, [selectedVoiceURI]);
 
   useEffect(() => {
-    localStorage.setItem(LS_VOICE_LOCAL, JSON.stringify(localVoicesOnly));
-  }, [localVoicesOnly]);
+    localStorage.setItem(LS_LISTS, JSON.stringify(workoutLists));
+  }, [workoutLists]);
+
+  useEffect(() => {
+    localStorage.setItem(LS_ACTIVE_LIST, JSON.stringify(activeListId));
+  }, [activeListId]);
+
+  // Scroll selected voice into view when settings panel opens
+  useEffect(() => {
+    if (!settingsOpen || !voiceEnabled) return;
+    const id = setTimeout(() => {
+      const selected = voiceListRef.current?.querySelector('.voice-item.selected');
+      selected?.scrollIntoView({ block: 'nearest' });
+    }, 0);
+    return () => clearTimeout(id);
+  }, [settingsOpen, voiceEnabled]);
 
   // ── Load TTS voices ──────────────────────────────────────────
   useEffect(() => {
@@ -152,6 +187,62 @@ function App() {
     });
   };
 
+  const addToList = (exercise) => {
+    setWorkoutLists(prev => prev.map(list =>
+      list.id === activeListId
+        ? { ...list, exercises: [...list.exercises, { ...exercise, uid: randomId() }] }
+        : list
+    ));
+  };
+
+  const removeFromList = (listId, uid) => {
+    setWorkoutLists(prev => prev.map(list =>
+      list.id === listId
+        ? { ...list, exercises: list.exercises.filter(e => e.uid !== uid) }
+        : list
+    ));
+  };
+
+  const reorderList = (listId, fromIndex, toIndex) => {
+    setWorkoutLists(prev => prev.map(list => {
+      if (list.id !== listId) return list;
+      const exs = [...list.exercises];
+      const [moved] = exs.splice(fromIndex, 1);
+      exs.splice(toIndex, 0, moved);
+      return { ...list, exercises: exs };
+    }));
+  };
+
+  const createList = () => {
+    const id = randomId();
+    const name = `List ${workoutLists.length + 1}`;
+    setWorkoutLists(prev => [...prev, { id, name, exercises: [] }]);
+    setActiveListId(id);
+  };
+
+  const deleteList = (listId) => {
+    setWorkoutLists(prev => {
+      const next = prev.filter(l => l.id !== listId);
+      if (next.length === 0) {
+        const newId = randomId();
+        setActiveListId(newId);
+        return [{ id: newId, name: 'My Workout', exercises: [] }];
+      }
+      setActiveListId(cur => cur === listId ? next[0].id : cur);
+      return next;
+    });
+  };
+
+  const renameList = (listId, name) => {
+    setWorkoutLists(prev => prev.map(l => l.id === listId ? { ...l, name } : l));
+  };
+
+  const startListWorkout = (exs) => {
+    if (exs.length === 0) return;
+    setWorkout(exs);
+    setActiveTab('workout');
+  };
+
   const generateWorkout = () => {
     const eligible = exercises.filter(e => selectedIds.has(e.id) && isAvailable(enabledEquipment)(e));
     if (eligible.length === 0) return;
@@ -197,20 +288,11 @@ function App() {
                   <span className="settings-label-sm">Voice</span>
                   <button className="voice-test-btn" onClick={testVoice}>▶ Test</button>
                 </div>
-                <div className="settings-row">
-                  <span className="settings-label-sm">Device voices only</span>
-                  <div
-                    className={`toggle toggle-sm ${localVoicesOnly ? 'on' : ''}`}
-                    onClick={() => setLocalVoicesOnly(v => !v)}
-                  >
-                    <div className="toggle-knob" />
-                  </div>
-                </div>
-                <div className="voice-list">
+                <div className="voice-list" ref={voiceListRef}>
                   {voices.length === 0 && (
                     <p className="voice-empty">No voices available</p>
                   )}
-                  {(localVoicesOnly ? voices.filter(v => v.localService) : voices).map(v => (
+                  {voices.map(v => (
                     <button
                       key={v.voiceURI}
                       className={`voice-item${v.voiceURI === selectedVoiceURI ? ' selected' : ''}`}
@@ -228,7 +310,7 @@ function App() {
       )}
 
       <main className="tab-content">
-        {activeTab === 'setup' ? (
+        {activeTab === 'setup' && (
           <ExerciseSelector
             exercises={exercises}
             selectedIds={selectedIds}
@@ -251,22 +333,36 @@ function App() {
             enabledEquipment={enabledEquipment}
             onToggleEquipment={toggleEquipment}
             onGenerate={generateWorkout}
+            onAddToList={addToList}
+            activeListName={workoutLists.find(l => l.id === activeListId)?.name ?? ''}
           />
-        ) : (
-          workout && (
-            <ExerciseTimer
-              key={workout.map(e => e.id).join(',')}
-              workout={workout}
-              intervalTime={intervalTime}
-              breakTime={breakTime}
-              restEnabled={restEnabled}
-              restEvery={restEvery}
-              restTime={restTime}
-              voiceEnabled={voiceEnabled}
-              voices={voices}
-              selectedVoiceURI={selectedVoiceURI}
-            />
-          )
+        )}
+        {activeTab === 'lists' && (
+          <WorkoutLists
+            lists={workoutLists}
+            activeListId={activeListId}
+            onSelectList={setActiveListId}
+            onCreateList={createList}
+            onRenameList={renameList}
+            onDeleteList={deleteList}
+            onRemoveExercise={removeFromList}
+            onReorderExercise={reorderList}
+            onStartWorkout={startListWorkout}
+          />
+        )}
+        {activeTab === 'workout' && workout && (
+          <ExerciseTimer
+            key={workout.map(e => e.uid ?? e.id).join(',')}
+            workout={workout}
+            intervalTime={intervalTime}
+            breakTime={breakTime}
+            restEnabled={restEnabled}
+            restEvery={restEvery}
+            restTime={restTime}
+            voiceEnabled={voiceEnabled}
+            voices={voices}
+            selectedVoiceURI={selectedVoiceURI}
+          />
         )}
       </main>
 
@@ -276,6 +372,12 @@ function App() {
           onClick={() => setActiveTab('setup')}
         >
           Exercises
+        </button>
+        <button
+          className={`nav-btn ${activeTab === 'lists' ? 'active' : ''}`}
+          onClick={() => setActiveTab('lists')}
+        >
+          Lists
         </button>
         <button
           className={`nav-btn ${activeTab === 'workout' ? 'active' : ''}`}

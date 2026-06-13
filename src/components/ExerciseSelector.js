@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './ExerciseSelector.css';
 
 function Stepper({ label, value, unit, onDecrement, onIncrement }) {
@@ -38,10 +38,15 @@ function ExerciseSelector({
   enabledEquipment,
   onToggleEquipment,
   onGenerate,
+  onAddToList,
+  activeListName,
 }) {
   const [previewExercise, setPreviewExercise] = useState(null);
   const [equipOpen, setEquipOpen] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
+  const [addedFeedback, setAddedFeedback] = useState(false);
+
+  useEffect(() => { setAddedFeedback(false); }, [previewExercise]);
 
   // Only show exercises whose required equipment is currently enabled
   const visibleExercises = exercises.filter(e =>
@@ -181,9 +186,11 @@ function ExerciseSelector({
               <li
                 key={ex.id}
                 className={`check-item ${checked ? 'checked' : ''}`}
-                onClick={() => onToggle(ex.id)}
               >
-                <div className={`checkbox ${checked ? 'checked' : ''}`}>
+                <div
+                  className={`checkbox ${checked ? 'checked' : ''}`}
+                  onClick={() => onToggle(ex.id)}
+                >
                   {checked && <span className="check-mark">✓</span>}
                 </div>
                 <span className="check-label">{ex.name}</span>
@@ -191,7 +198,7 @@ function ExerciseSelector({
                   src={process.env.PUBLIC_URL + ex.gif}
                   alt={ex.name}
                   className="exercise-thumb"
-                  onClick={e => { e.stopPropagation(); setPreviewExercise(ex); }}
+                  onClick={() => setPreviewExercise(ex)}
                 />
               </li>
             );
@@ -206,7 +213,7 @@ function ExerciseSelector({
       >
         {selectedVisibleCount === 0
           ? 'Select at least one exercise'
-          : `Generate Workout · ${willGenerate} exercise${willGenerate === 1 ? '' : 's'}`}
+          : `Shuffle Workout · ${willGenerate} exercise${willGenerate === 1 ? '' : 's'}`}
       </button>
 
       {/* Preview modal */}
@@ -224,6 +231,22 @@ function ExerciseSelector({
                 ? previewExercise.equipment.join(', ')
                 : 'No equipment'}
             </p>
+            {onAddToList && (
+              <button
+                className={`preview-add-btn${addedFeedback ? ' added' : ''}`}
+                onClick={() => {
+                  onAddToList(previewExercise);
+                  setAddedFeedback(true);
+                  setTimeout(() => setAddedFeedback(false), 1500);
+                }}
+              >
+                {addedFeedback
+                  ? '✓ Added'
+                  : activeListName
+                    ? `Add to "${activeListName}"`
+                    : 'Add to List'}
+              </button>
+            )}
             <button
               className="preview-close"
               onClick={() => setPreviewExercise(null)}
