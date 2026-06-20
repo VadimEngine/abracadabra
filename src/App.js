@@ -78,7 +78,8 @@ function App() {
 
   // Settings panel
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const voiceListRef = useRef(null);
+  const [voiceDropOpen, setVoiceDropOpen] = useState(false);
+  const voicePickerListRef = useRef(null);
 
   // ── Persistence effects ──────────────────────────────────────
   useEffect(() => {
@@ -113,15 +114,20 @@ function App() {
     localStorage.setItem(LS_ACTIVE_LIST, JSON.stringify(activeListId));
   }, [activeListId]);
 
-  // Scroll selected voice into view when settings panel opens
+  // Close voice dropdown when settings panel closes
   useEffect(() => {
-    if (!settingsOpen || !voiceEnabled) return;
+    if (!settingsOpen) setVoiceDropOpen(false);
+  }, [settingsOpen]);
+
+  // Scroll selected voice into view when dropdown opens
+  useEffect(() => {
+    if (!voiceDropOpen) return;
     const id = setTimeout(() => {
-      const selected = voiceListRef.current?.querySelector('.voice-item.selected');
+      const selected = voicePickerListRef.current?.querySelector('.voice-picker-item.selected');
       selected?.scrollIntoView({ block: 'nearest' });
     }, 0);
     return () => clearTimeout(id);
-  }, [settingsOpen, voiceEnabled]);
+  }, [voiceDropOpen]);
 
   // ── Load TTS voices ──────────────────────────────────────────
   useEffect(() => {
@@ -288,20 +294,35 @@ function App() {
                   <span className="settings-label-sm">Voice</span>
                   <button className="voice-test-btn" onClick={testVoice}>▶ Test</button>
                 </div>
-                <div className="voice-list" ref={voiceListRef}>
-                  {voices.length === 0 && (
-                    <p className="voice-empty">No voices available</p>
+                <div className="voice-picker">
+                  <button
+                    className={`voice-picker-btn${voiceDropOpen ? ' open' : ''}`}
+                    onClick={() => setVoiceDropOpen(v => !v)}
+                  >
+                    <span className="voice-picker-label">
+                      {voices.find(v => v.voiceURI === selectedVoiceURI)?.name ?? 'Select voice…'}
+                    </span>
+                    <svg className="voice-picker-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                  {voiceDropOpen && (
+                    <div className="voice-picker-list" ref={voicePickerListRef}>
+                      {voices.length === 0 && (
+                        <p className="voice-empty">No voices available</p>
+                      )}
+                      {voices.map(v => (
+                        <button
+                          key={v.voiceURI}
+                          className={`voice-picker-item${v.voiceURI === selectedVoiceURI ? ' selected' : ''}`}
+                          onClick={() => { setSelectedVoiceURI(v.voiceURI); setVoiceDropOpen(false); }}
+                        >
+                          <span className="voice-name">{v.name}</span>
+                          <span className="voice-lang">{v.lang}</span>
+                        </button>
+                      ))}
+                    </div>
                   )}
-                  {voices.map(v => (
-                    <button
-                      key={v.voiceURI}
-                      className={`voice-item${v.voiceURI === selectedVoiceURI ? ' selected' : ''}`}
-                      onClick={() => setSelectedVoiceURI(v.voiceURI)}
-                    >
-                      <span className="voice-name">{v.name}</span>
-                      <span className="voice-lang">{v.lang}</span>
-                    </button>
-                  ))}
                 </div>
               </>
             )}
