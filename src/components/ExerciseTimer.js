@@ -122,10 +122,12 @@ function ExerciseTimer({
     if (!isFinished) return;
     speak('Workout complete');
     const fire = () => confetti({ particleCount: 120, spread: 75, origin: { y: 0.55 } });
+    
+    // Fire immediately and then continuously every 500ms
     fire();
-    const t1 = setTimeout(fire, 350);
-    const t2 = setTimeout(fire, 700);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const intervalId = setInterval(fire, 500);
+    
+    return () => clearInterval(intervalId);
   }, [isFinished]);
 
   // Cancel speech on unmount
