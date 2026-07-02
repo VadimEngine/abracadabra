@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import confetti from 'canvas-confetti';
+import completionMessages from '../data/completionMessages.json';
 import './ExerciseTimer.css';
 
 function buildPhases(workout, intervalTime, breakTime, restEnabled, restEvery, restTime) {
@@ -37,7 +38,7 @@ function buildPhases(workout, intervalTime, breakTime, restEnabled, restEvery, r
 
 function ExerciseTimer({
   workout, intervalTime, breakTime, restEnabled, restEvery, restTime,
-  voiceEnabled, voices, selectedVoiceURI,
+  voiceEnabled, voices, selectedVoiceURI, easterEgg,
 }) {
   const phases = useMemo(
     () => buildPhases(workout, intervalTime, breakTime, restEnabled, restEvery, restTime),
@@ -48,6 +49,7 @@ function ExerciseTimer({
   const [timeRemaining, setTimeRemaining] = useState(phases[0].duration);
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [completionMessage, setCompletionMessage] = useState('');
 
   const spokenPhaseRef = useRef(-1);
 
@@ -120,7 +122,11 @@ function ExerciseTimer({
   // Confetti + voice on completion
   useEffect(() => {
     if (!isFinished) return;
-    speak('Workout complete');
+    const message = easterEgg
+      ? 'Fuck you Bryce!'
+      : completionMessages[Math.floor(Math.random() * completionMessages.length)];
+    setCompletionMessage(message);
+    speak(`Workout complete. ${message}`);
     const fire = () => confetti({ particleCount: 120, spread: 75, origin: { y: 0.55 } });
     
     // Fire immediately and then continuously every 500ms
@@ -128,6 +134,7 @@ function ExerciseTimer({
     const intervalId = setInterval(fire, 500);
     
     return () => clearInterval(intervalId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFinished]);
 
   // Cancel speech on unmount
@@ -173,7 +180,10 @@ function ExerciseTimer({
     <div className="workout-tab">
       <div className="exercise-display">
         {isFinished ? (
-          <p className="done-text">Workout Complete!</p>
+          <>
+            <p className="done-text">Workout Complete!</p>
+            {completionMessage && <p className="done-subtext">{completionMessage}</p>}
+          </>
         ) : isGapPhase ? (
           nextExercise ? (
             <>

@@ -43,6 +43,9 @@ function App() {
   const [restTime,     setRestTime]     = useState(() => lsGet(LS_REST_TIME,   60));
   const [workout, setWorkout] = useState(null);
   const [activeTab, setActiveTab] = useState('setup');
+  const [easterEgg, setEasterEgg] = useState(false);
+  const titleTapCountRef = useRef(0);
+  const titleTapTimerRef = useRef(null);
 
   const [workoutLists, setWorkoutLists] = useState(() => {
     const saved = lsGet(LS_LISTS, null);
@@ -249,6 +252,21 @@ function App() {
     setActiveTab('workout');
   };
 
+  const handleTitleTap = () => {
+    titleTapCountRef.current += 1;
+    clearTimeout(titleTapTimerRef.current);
+
+    if (titleTapCountRef.current >= 3) {
+      setEasterEgg(e => !e);
+      titleTapCountRef.current = 0;
+      return;
+    }
+
+    titleTapTimerRef.current = setTimeout(() => {
+      titleTapCountRef.current = 0;
+    }, 1000);
+  };
+
   const generateWorkout = () => {
     const eligible = exercises.filter(e => selectedIds.has(e.id) && isAvailable(enabledEquipment)(e));
     if (eligible.length === 0) return;
@@ -261,7 +279,9 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Abracadabra</h1>
+        <h1 className={`app-title${easterEgg ? ' easter-egg' : ''}`} onClick={handleTitleTap}>
+          Abracadabra
+        </h1>
         <button
           className={`hamburger-btn${settingsOpen ? ' open' : ''}`}
           onClick={() => setSettingsOpen(o => !o)}
@@ -383,6 +403,7 @@ function App() {
             voiceEnabled={voiceEnabled}
             voices={voices}
             selectedVoiceURI={selectedVoiceURI}
+            easterEgg={easterEgg}
           />
         )}
       </main>

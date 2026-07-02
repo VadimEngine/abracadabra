@@ -28,6 +28,13 @@
   letter-spacing: 0.1em;
   color: #f0f0f0;
   text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
+.app-header h1.easter-egg {
+  color: #2ecc71;
 }
 
 /* ── Hamburger button ────────────────────────────────────────── */
