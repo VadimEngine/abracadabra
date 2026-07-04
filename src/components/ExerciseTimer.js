@@ -50,7 +50,7 @@ function ExerciseTimer({
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [completionMessage, setCompletionMessage] = useState('');
-  const [bragFeedback, setBragFeedback] = useState(false);
+  const [flexFeedback, setFlexFeedback] = useState(false);
 
   const spokenPhaseRef = useRef(-1);
 
@@ -163,7 +163,7 @@ function ExerciseTimer({
     setIsFinished(false);
   };
 
-  const handleBrag = async () => {
+  const handleFlex = async () => {
     const text = `I just completed a ${workout.length} round workout with the Abracadabra app 💪`;
     if (navigator.share) {
       try { await navigator.share({ text }); } catch { /* user cancelled share */ }
@@ -171,8 +171,8 @@ function ExerciseTimer({
     }
     try {
       await navigator.clipboard.writeText(text);
-      setBragFeedback(true);
-      setTimeout(() => setBragFeedback(false), 1500);
+      setFlexFeedback(true);
+      setTimeout(() => setFlexFeedback(false), 1500);
     } catch { /* clipboard unavailable */ }
   };
 
@@ -197,8 +197,8 @@ function ExerciseTimer({
           <>
             <p className="done-text">Workout Complete!</p>
             {completionMessage && <p className="done-subtext">{completionMessage}</p>}
-            <button className="brag-btn" onClick={handleBrag}>
-              {bragFeedback ? '✓ Copied' : '🏆 Brag'}
+            <button className="flex-btn" onClick={handleFlex}>
+              {flexFeedback ? '✓ Copied' : '💪 Flex'}
             </button>
           </>
         ) : isGapPhase ? (

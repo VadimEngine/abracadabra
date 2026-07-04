@@ -148,7 +148,7 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
-.brag-btn {
+.flex-btn {
   margin-top: 0.9rem;
   padding: 10px 22px;
   border: none;
@@ -161,7 +161,7 @@
   transition: opacity 0.12s, transform 0.1s;
 }
 
-.brag-btn:active {
+.flex-btn:active {
   opacity: 0.8;
   transform: scale(0.97);
 }
