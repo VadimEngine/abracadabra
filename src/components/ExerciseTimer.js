@@ -50,6 +50,7 @@ function ExerciseTimer({
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [completionMessage, setCompletionMessage] = useState('');
+  const [bragFeedback, setBragFeedback] = useState(false);
 
   const spokenPhaseRef = useRef(-1);
 
@@ -112,9 +113,9 @@ function ExerciseTimer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, isFinished, phaseIndex, phaseType, currentExercise]);
 
-  // Countdown 3-2-1 during getReady
+  // Countdown 3-2-1 during getReady and switch
   useEffect(() => {
-    if (!isRunning || phaseType !== 'getReady') return;
+    if (!isRunning || (phaseType !== 'getReady' && phaseType !== 'switch')) return;
     if (timeRemaining >= 1 && timeRemaining <= 3) speak(String(timeRemaining));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, phaseType, timeRemaining]);
@@ -126,7 +127,7 @@ function ExerciseTimer({
       ? 'Fuck you Bryce!'
       : completionMessages[Math.floor(Math.random() * completionMessages.length)];
     setCompletionMessage(message);
-    speak(`Workout complete. ${message}`);
+    speak(`Workout complete. ${message.replace(/-/g, '')}`);
     const fire = () => confetti({ particleCount: 120, spread: 75, origin: { y: 0.55 } });
     
     // Fire immediately and then continuously every 500ms
@@ -162,6 +163,19 @@ function ExerciseTimer({
     setIsFinished(false);
   };
 
+  const handleBrag = async () => {
+    const text = `I just completed a ${workout.length} round workout with the Abracadabra app 💪`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch { /* user cancelled share */ }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setBragFeedback(true);
+      setTimeout(() => setBragFeedback(false), 1500);
+    } catch { /* clipboard unavailable */ }
+  };
+
   const phaseClass = isFinished            ? 'finished'  :
     phaseType === 'getReady'               ? 'get-ready' :
     phaseType === 'work'                   ? 'work'      :
@@ -183,6 +197,9 @@ function ExerciseTimer({
           <>
             <p className="done-text">Workout Complete!</p>
             {completionMessage && <p className="done-subtext">{completionMessage}</p>}
+            <button className="brag-btn" onClick={handleBrag}>
+              {bragFeedback ? '✓ Copied' : '🏆 Brag'}
+            </button>
           </>
         ) : isGapPhase ? (
           nextExercise ? (
@@ -215,6 +232,9 @@ function ExerciseTimer({
               <div className="work-banner">Work</div>
             )}
             <h2 className="exercise-name">{currentExercise.name}</h2>
+            {currentExercise.twoPhase && intervalTime >= 10 && (
+              <p className="two-phase-badge">Two-Phase · Switch Sides Halfway</p>
+            )}
           </>
         )}
       </div>

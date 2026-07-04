@@ -16,6 +16,7 @@ function WorkoutLists({
   const [editName, setEditName] = useState('');
   const [dragIndex, setDragIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const lastTapRef = useRef({ id: null, time: 0 });
 
   const activeList = lists.find(l => l.id === activeListId) ?? lists[0];
   const exercises = activeList?.exercises ?? [];
@@ -23,6 +24,18 @@ function WorkoutLists({
   const startEdit = (list) => {
     setEditingListId(list.id);
     setEditName(list.name);
+  };
+
+  const handleChipTap = (list) => {
+    const now = Date.now();
+    const last = lastTapRef.current;
+    if (last.id === list.id && now - last.time < 350) {
+      lastTapRef.current = { id: null, time: 0 };
+      startEdit(list);
+      return;
+    }
+    lastTapRef.current = { id: list.id, time: now };
+    onSelectList(list.id);
   };
 
   const commitEdit = () => {
@@ -79,21 +92,12 @@ function WorkoutLists({
               ) : (
                 <button
                   className={`list-chip${list.id === activeListId ? ' active' : ''}`}
-                  onClick={() => onSelectList(list.id)}
+                  onClick={() => handleChipTap(list)}
                 >
                   {list.name}
                   {list.exercises.length > 0 && (
                     <span className="list-chip-count">{list.exercises.length}</span>
                   )}
-                </button>
-              )}
-              {list.id === activeListId && editingListId !== list.id && (
-                <button
-                  className="list-chip-edit"
-                  onClick={() => startEdit(list)}
-                  aria-label="Rename list"
-                >
-                  ✏
                 </button>
               )}
             </div>

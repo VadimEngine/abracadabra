@@ -18,7 +18,7 @@ const LS_REST_TIME    = 'abra-rest-time';
 const LS_LISTS        = 'abra-lists';
 const LS_ACTIVE_LIST  = 'abra-active-list';
 
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.1.0';
 
 const randomId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 

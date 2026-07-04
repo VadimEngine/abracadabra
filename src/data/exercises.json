@@ -19,7 +19,7 @@
   { "id": 22, "name": "Floor Crunch",                    "gif": "/gifs/Floor-Crunch.gif",                      "equipment": [],               "twoPhase": false },
   { "id": 44, "name": "Frog Crunch",                     "gif": "/gifs/frog-crunch.gif",                       "equipment": [],               "twoPhase": false },
   { "id": 47, "name": "Frogger",                         "gif": "/gifs/Frogger.webp",                          "equipment": [],               "twoPhase": false },
-  { "id": 23, "name": "Front Plank With Arm Lift",       "gif": "/gifs/Front-Plank-with-Arm-Lift.gif",         "equipment": [],               "twoPhase": false },
+  { "id": 23, "name": "Front Plank With Arm Lift",       "gif": "/gifs/Front-Plank-with-Arm-Lift.gif",         "equipment": [],               "twoPhase": true },
   { "id": 24, "name": "Front To Side Plank",             "gif": "/gifs/Front-to-Side-Plank.gif",               "equipment": [],               "twoPhase": false },
   { "id": 25, "name": "Half Cross Crunch",               "gif": "/gifs/Half-Cross-Crunch.gif",                 "equipment": [],               "twoPhase": true  },
   { "id": 48, "name": "Half Wipers",                     "gif": "/gifs/Half-Wipers.gif",                       "equipment": [],               "twoPhase": true  },
