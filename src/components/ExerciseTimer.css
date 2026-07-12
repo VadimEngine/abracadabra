@@ -9,6 +9,12 @@
   overflow: hidden;
 }
 
+/* Kept mounted while another tab is active (so timer state/progress isn't
+   lost), just hidden from view and layout. */
+.workout-tab.tab-hidden {
+  display: none;
+}
+
 /* ── Exercise / state display ────────────────────────────────── */
 .exercise-display {
   flex: 1;
@@ -166,14 +172,63 @@
   transform: scale(0.97);
 }
 
+/* ── Timer dial (segmented ring + circular timer face) ──────────── */
+.timer-dial {
+  flex-shrink: 0;
+  position: relative;
+  width: min(207px, 52vw);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.timer-dial-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dial-segment {
+  transition: stroke 0.3s ease, opacity 0.3s ease;
+}
+
+.dial-segment-exercise.dial-segment-upcoming {
+  stroke: rgba(74, 222, 128, 0.55);
+}
+
+.dial-segment-exercise.dial-segment-current {
+  stroke: #4ade80;
+  filter: drop-shadow(0 0 4px rgba(74, 222, 128, 0.75));
+}
+
+.dial-segment-exercise.dial-segment-done {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
+.dial-segment-rest.dial-segment-upcoming {
+  stroke: rgba(245, 158, 11, 0.65);
+}
+
+.dial-segment-rest.dial-segment-current {
+  stroke: #f59e0b;
+  filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.8));
+}
+
+.dial-segment-rest.dial-segment-done {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+
 /* ── Timer display ───────────────────────────────────────────── */
 .timer-display {
-  flex-shrink: 0;
-  border-radius: 14px;
-  padding: 20px;
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   transition: background 0.4s ease;
 }
@@ -220,17 +275,11 @@
 }
 
 .time-digits {
-  font-size: 3rem;
+  font-size: clamp(1.8rem, 9vw, 3rem);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: 2px;
   line-height: 1;
-}
-
-.progress-label {
-  font-size: 0.74rem;
-  opacity: 0.65;
-  margin-top: 2px;
 }
 
 /* ── Controls ────────────────────────────────────────────────── */

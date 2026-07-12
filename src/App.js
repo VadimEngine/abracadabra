@@ -450,9 +450,10 @@ function App() {
             onAddToList={addToList}
           />
         )}
-        {activeTab === 'workout' && workout && (
+        {workout && (
           <ExerciseTimer
             key={workout.map(e => e.uid ?? e.id).join(',')}
+            isActive={activeTab === 'workout'}
             workout={workout}
             intervalTime={intervalTime}
             breakTime={breakTime}

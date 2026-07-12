@@ -36,13 +36,33 @@ function buildPhases(workout, intervalTime, breakTime, restEnabled, restEvery, r
   return phases;
 }
 
+// One segment per exercise (green), plus one extra segment for each rest
+// gap (a different color), in playback order — the dial around the timer.
+function buildDialSegments(workout, restEnabled, restEvery) {
+  const segments = [];
+  const N = workout.length;
+  for (let i = 0; i < N; i++) {
+    segments.push({ type: 'exercise', exerciseIndex: i });
+    if (i < N - 1) {
+      const round = i + 1;
+      const isRestRound = restEnabled && restEvery > 0 && round % restEvery === 0;
+      if (isRestRound) segments.push({ type: 'rest', exerciseIndex: i });
+    }
+  }
+  return segments;
+}
+
 function ExerciseTimer({
   workout, intervalTime, breakTime, restEnabled, restEvery, restTime,
-  voiceEnabled, voices, selectedVoiceURI, easterEgg,
+  voiceEnabled, voices, selectedVoiceURI, easterEgg, isActive,
 }) {
   const phases = useMemo(
     () => buildPhases(workout, intervalTime, breakTime, restEnabled, restEvery, restTime),
     [workout, intervalTime, breakTime, restEnabled, restEvery, restTime]
+  );
+  const dialSegments = useMemo(
+    () => buildDialSegments(workout, restEnabled, restEvery),
+    [workout, restEnabled, restEvery]
   );
 
   const [phaseIndex, setPhaseIndex] = useState(0);
@@ -78,7 +98,6 @@ function ExerciseTimer({
   const { type: phaseType, exerciseIndex } = phases[phaseIndex];
   const currentExercise = workout[exerciseIndex];
   const nextExercise    = workout[exerciseIndex + 1];
-  const roundNumber     = exerciseIndex + 1;
 
   // Timer tick
   useEffect(() => {
@@ -121,7 +140,18 @@ function ExerciseTimer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, phaseType, timeRemaining]);
 
-  // Confetti + voice on completion
+  // Switching away to another tab pauses the timer but never resets it —
+  // it stays mounted in the background so progress is preserved. Only the
+  // Reset button or starting a new workout should clear it.
+  useEffect(() => {
+    if (!isActive && isRunning) {
+      window.speechSynthesis?.cancel();
+      setIsRunning(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive]);
+
+  // Pick the completion message + announce it (once per finish)
   useEffect(() => {
     if (!isFinished) return;
     const message = easterEgg
@@ -129,15 +159,21 @@ function ExerciseTimer({
       : completionMessages[Math.floor(Math.random() * completionMessages.length)];
     setCompletionMessage(message);
     speak(`Workout complete. ${message.replace(/-/g, '')}`);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFinished]);
+
+  // Confetti only falls while the finished screen is actually visible —
+  // switching tabs away stops it immediately.
+  useEffect(() => {
+    if (!isFinished || !isActive) return;
     const fire = () => confetti({ particleCount: 120, spread: 75, origin: { y: 0.55 } });
-    
+
     // Fire immediately and then continuously every 500ms
     fire();
     const intervalId = setInterval(fire, 500);
-    
+
     return () => clearInterval(intervalId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFinished]);
+  }, [isFinished, isActive]);
 
   // Cancel speech on unmount
   useEffect(() => {
@@ -191,8 +227,19 @@ function ExerciseTimer({
 
   const isGapPhase = phaseType === 'break' || phaseType === 'rest';
 
+  // Dial segment status: 'done' (already passed), 'current' (happening
+  // right now), or 'upcoming'. Once finished, everything reads as done.
+  const getSegmentStatus = (seg) => {
+    if (isFinished) return 'done';
+    if (seg.exerciseIndex > exerciseIndex) return 'upcoming';
+    if (seg.exerciseIndex < exerciseIndex) return 'done';
+    // seg.exerciseIndex === exerciseIndex
+    if (seg.type === 'rest') return phaseType === 'rest' ? 'current' : 'upcoming';
+    return isGapPhase ? 'done' : 'current';
+  };
+
   return (
-    <div className="workout-tab">
+    <div className={`workout-tab${isActive ? '' : ' tab-hidden'}`}>
       <div className="exercise-display">
         {isFinished ? (
           <>
@@ -240,12 +287,45 @@ function ExerciseTimer({
         )}
       </div>
 
-      <div className={`timer-display ${phaseClass}${isFinished ? ' pulse' : ''}`}>
-        <div className="phase-label">{phaseLabel}</div>
-        <div className="time-digits">{timeRemaining.toString().padStart(2, '0')}s</div>
-        {!isFinished && (
-          <div className="progress-label">{roundNumber} / {workout.length}</div>
-        )}
+      <div className="timer-dial">
+        <svg className="timer-dial-ring" viewBox="0 0 100 100">
+          {(() => {
+            const radius = 46;
+            const circumference = 2 * Math.PI * radius;
+            const segAngle = 360 / dialSegments.length;
+            // A clearly visible gap between segments, proportional to segment
+            // size but clamped so it stays readable whether there are 2 or 20.
+            const gapDeg = Math.min(14, Math.max(3, segAngle * 0.3));
+            const drawLen = ((segAngle - gapDeg) / 360) * circumference;
+            // Center the first segment on the top of the dial (rather than
+            // starting it there) so the whole ring is left/right symmetric,
+            // for both even and odd segment counts.
+            const rotation = -90 - segAngle / 2;
+            return dialSegments.map((seg, i) => {
+              const dashOffset = -((i * segAngle) / 360) * circumference;
+              const status = getSegmentStatus(seg);
+              return (
+                <circle
+                  key={i}
+                  cx="50"
+                  cy="50"
+                  r={radius}
+                  fill="none"
+                  strokeWidth="7"
+                  strokeLinecap="butt"
+                  strokeDasharray={`${drawLen} ${circumference - drawLen}`}
+                  strokeDashoffset={dashOffset}
+                  transform={`rotate(${rotation} 50 50)`}
+                  className={`dial-segment dial-segment-${seg.type} dial-segment-${status}`}
+                />
+              );
+            });
+          })()}
+        </svg>
+        <div className={`timer-display ${phaseClass}${isFinished ? ' pulse' : ''}`}>
+          <div className="phase-label">{phaseLabel}</div>
+          <div className="time-digits">{timeRemaining}</div>
+        </div>
       </div>
 
       <div className="timer-controls">

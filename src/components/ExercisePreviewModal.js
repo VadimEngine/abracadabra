@@ -117,6 +117,11 @@ function ExercisePreviewModal({
           transition: previewTransitioning ? 'transform 0.25s ease' : 'none',
         }}
       >
+        <div className="preview-header">
+          <button className="preview-close-x" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
         <img
           src={process.env.PUBLIC_URL + item.gif}
           alt={item.name}
@@ -163,10 +168,6 @@ function ExercisePreviewModal({
             </div>
           </div>
         )}
-
-        <button className="preview-close" onClick={onClose}>
-          Close
-        </button>
       </div>
     </div>
   );
