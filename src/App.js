@@ -18,7 +18,7 @@ const LS_REST_TIME    = 'abra-rest-time';
 const LS_LISTS        = 'abra-lists';
 const LS_ACTIVE_LIST  = 'abra-active-list';
 
-const APP_VERSION = '1.2.0';
+const APP_VERSION = '1.2.1';
 
 // Resolves a BCP-47 lang tag (e.g. "fr-FR") to a human-readable name (e.g. "French (France)")
 // so voice search can match on language name, not just the raw code.
@@ -42,6 +42,26 @@ const getLangLabel = (lang) => {
   }
   langLabelCache.set(lang, label);
   return label;
+};
+
+// Ranks voices by how close their language is to English (United States):
+// 0 = en-US (or a en-US-* sub-variant), 1 = any other English, 2 = everything
+// else. Ties break in favor of the platform's own flagged default voice.
+const englishUSScore = (voice) => {
+  const lang = toBcp47(voice.lang || '').toLowerCase();
+  if (lang === 'en-us' || lang.startsWith('en-us-')) return 0;
+  if (lang === 'en' || lang.startsWith('en-')) return 1;
+  return 2;
+};
+
+const pickDefaultVoice = (voiceList) => {
+  if (voiceList.length === 0) return undefined;
+  return [...voiceList].sort((a, b) => {
+    const scoreDiff = englishUSScore(a) - englishUSScore(b);
+    if (scoreDiff !== 0) return scoreDiff;
+    if (a.default !== b.default) return a.default ? -1 : 1;
+    return 0;
+  })[0];
 };
 
 const randomId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -173,8 +193,7 @@ function App() {
       setVoices(v);
       setSelectedVoiceURI(uri => {
         if (uri && v.some(vv => vv.voiceURI === uri)) return uri;
-        const def = v.find(vv => vv.default) || v[0];
-        return def?.voiceURI ?? '';
+        return pickDefaultVoice(v)?.voiceURI ?? '';
       });
     };
     load();

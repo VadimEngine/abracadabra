@@ -36,17 +36,23 @@ function buildPhases(workout, intervalTime, breakTime, restEnabled, restEvery, r
   return phases;
 }
 
-// One segment per exercise (green), plus one extra segment for each rest
-// gap (a different color), in playback order — the dial around the timer.
-function buildDialSegments(workout, restEnabled, restEvery) {
+// One segment per exercise (green), plus one extra segment for every gap
+// between exercises — a rest (one color) or a plain break (another) — in
+// playback order. Each segment's duration is the real total time it covers
+// (an exercise segment sums getReady + work/switch legs), so the dial can
+// size each wedge proportionally to how long it actually takes.
+function buildDialSegments(phases) {
   const segments = [];
-  const N = workout.length;
-  for (let i = 0; i < N; i++) {
-    segments.push({ type: 'exercise', exerciseIndex: i });
-    if (i < N - 1) {
-      const round = i + 1;
-      const isRestRound = restEnabled && restEvery > 0 && round % restEvery === 0;
-      if (isRestRound) segments.push({ type: 'rest', exerciseIndex: i });
+  for (const phase of phases) {
+    if (phase.type === 'break' || phase.type === 'rest') {
+      segments.push({ type: phase.type, exerciseIndex: phase.exerciseIndex, duration: phase.duration });
+      continue;
+    }
+    const last = segments[segments.length - 1];
+    if (last && last.type === 'exercise' && last.exerciseIndex === phase.exerciseIndex) {
+      last.duration += phase.duration;
+    } else {
+      segments.push({ type: 'exercise', exerciseIndex: phase.exerciseIndex, duration: phase.duration });
     }
   }
   return segments;
@@ -60,10 +66,7 @@ function ExerciseTimer({
     () => buildPhases(workout, intervalTime, breakTime, restEnabled, restEvery, restTime),
     [workout, intervalTime, breakTime, restEnabled, restEvery, restTime]
   );
-  const dialSegments = useMemo(
-    () => buildDialSegments(workout, restEnabled, restEvery),
-    [workout, restEnabled, restEvery]
-  );
+  const dialSegments = useMemo(() => buildDialSegments(phases), [phases]);
 
   const [phaseIndex, setPhaseIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(phases[0].duration);
@@ -234,8 +237,37 @@ function ExerciseTimer({
     if (seg.exerciseIndex > exerciseIndex) return 'upcoming';
     if (seg.exerciseIndex < exerciseIndex) return 'done';
     // seg.exerciseIndex === exerciseIndex
-    if (seg.type === 'rest') return phaseType === 'rest' ? 'current' : 'upcoming';
+    if (seg.type === 'rest' || seg.type === 'break') {
+      return phaseType === seg.type ? 'current' : 'upcoming';
+    }
     return isGapPhase ? 'done' : 'current';
+  };
+
+  // How much of the *current* segment's time has elapsed (0 = just started,
+  // 1 = fully elapsed) — used to shrink it as a countdown. A rest/break
+  // segment is one phase; an exercise segment spans getReady (+ switch/work
+  // legs for a two-phase move), so those durations are combined into one
+  // countdown.
+  const getSegmentProgress = (seg) => {
+    const currentPhase = phases[phaseIndex];
+    if (currentPhase.exerciseIndex !== seg.exerciseIndex) return 0;
+
+    if (seg.type === 'rest' || seg.type === 'break') {
+      if (currentPhase.type !== seg.type) return 0;
+      return Math.min(1, (currentPhase.duration - timeRemaining) / currentPhase.duration);
+    }
+
+    if (currentPhase.type === 'break' || currentPhase.type === 'rest') return 0;
+    const roundPhases = phases.filter(p => p.exerciseIndex === seg.exerciseIndex && p.type !== 'break' && p.type !== 'rest');
+    let elapsed = 0;
+    for (const p of roundPhases) {
+      if (p === currentPhase) {
+        elapsed += p.duration - timeRemaining;
+        break;
+      }
+      elapsed += p.duration;
+    }
+    return Math.min(1, elapsed / seg.duration);
   };
 
   return (
@@ -257,12 +289,16 @@ function ExerciseTimer({
                 alt={nextExercise.name}
                 className="exercise-gif break-gif"
               />
-              <div className="break-banner">{phaseType === 'rest' ? 'Rest' : 'Break'}</div>
+              <div className={`break-banner${phaseType === 'rest' ? ' rest' : ''}`}>
+                {phaseType === 'rest' ? 'Rest' : 'Break'}
+              </div>
               <h2 className="exercise-name">Next: {nextExercise.name}</h2>
             </>
           ) : (
             <div className="gap-info">
-              <p className="gap-heading">{phaseType === 'rest' ? 'Rest' : 'Break'}</p>
+              <p className={`gap-heading${phaseType === 'rest' ? ' rest' : ''}`}>
+                {phaseType === 'rest' ? 'Rest' : 'Break'}
+              </p>
             </div>
           )
         ) : (
@@ -292,34 +328,83 @@ function ExerciseTimer({
           {(() => {
             const radius = 46;
             const circumference = 2 * Math.PI * radius;
-            const segAngle = 360 / dialSegments.length;
-            // A clearly visible gap between segments, proportional to segment
-            // size but clamped so it stays readable whether there are 2 or 20.
-            const gapDeg = Math.min(14, Math.max(3, segAngle * 0.3));
-            const drawLen = ((segAngle - gapDeg) / 360) * circumference;
+
+            // Each segment's angular width is proportional to how long it
+            // actually takes, so a 60s exercise reads as a bigger wedge than
+            // a 10s break, not an equal slice.
+            const totalDuration = dialSegments.reduce((sum, s) => sum + s.duration, 0) || 1;
+            const segAngles = dialSegments.map(s => (s.duration / totalDuration) * 360);
+            const startAngles = [];
+            let cursor = 0;
+            for (const a of segAngles) {
+              startAngles.push(cursor);
+              cursor += a;
+            }
+
+            // A clearly visible gap between segments — a flat size (not
+            // proportional to each segment's own width, since those now
+            // vary a lot) so spacing stays consistent around the ring.
+            const avgAngle = 360 / dialSegments.length;
+            const gapDeg = Math.min(10, Math.max(2, avgAngle * 0.2));
+            const minDrawDeg = 1.5; // never let a very short segment vanish entirely
+
             // Center the first segment on the top of the dial (rather than
-            // starting it there) so the whole ring is left/right symmetric,
-            // for both even and odd segment counts.
-            const rotation = -90 - segAngle / 2;
-            return dialSegments.map((seg, i) => {
-              const dashOffset = -((i * segAngle) / 360) * circumference;
-              const status = getSegmentStatus(seg);
-              return (
-                <circle
-                  key={i}
-                  cx="50"
-                  cy="50"
-                  r={radius}
-                  fill="none"
-                  strokeWidth="7"
-                  strokeLinecap="butt"
-                  strokeDasharray={`${drawLen} ${circumference - drawLen}`}
-                  strokeDashoffset={dashOffset}
-                  transform={`rotate(${rotation} 50 50)`}
-                  className={`dial-segment dial-segment-${seg.type} dial-segment-${status}`}
-                />
-              );
-            });
+            // starting it there) so the ring reads symmetrically at a glance.
+            const rotation = -90 - segAngles[0] / 2;
+
+            return (
+              <>
+                {/* Static gray track, always full-length, sits behind the
+                    colored fill so shrinking/finished segments reveal it
+                    instead of it "growing in" after the fact. */}
+                {dialSegments.map((seg, i) => {
+                  const drawLen = (Math.max(segAngles[i] - gapDeg, minDrawDeg) / 360) * circumference;
+                  const dashOffset = -(startAngles[i] / 360) * circumference;
+                  return (
+                    <circle
+                      key={`track-${i}`}
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="none"
+                      strokeWidth="7"
+                      strokeLinecap="butt"
+                      strokeDasharray={`${drawLen} ${circumference - drawLen}`}
+                      strokeDashoffset={dashOffset}
+                      transform={`rotate(${rotation} 50 50)`}
+                      className="dial-segment-track"
+                    />
+                  );
+                })}
+                {dialSegments.map((seg, i) => {
+                  const status = getSegmentStatus(seg);
+                  if (status === 'done') return null;
+                  const drawLen = (Math.max(segAngles[i] - gapDeg, minDrawDeg) / 360) * circumference;
+                  // Shrink the current segment as time runs out, eating into it
+                  // from its start (counterclockwise edge) so the remaining arc
+                  // keeps its end anchored — the vanishing edge sweeps clockwise,
+                  // matching the direction segments are laid out around the dial.
+                  const progress = status === 'current' ? getSegmentProgress(seg) : 0;
+                  const liveDrawLen = drawLen * (1 - progress);
+                  const dashOffset = -((startAngles[i] / 360) * circumference + progress * drawLen);
+                  return (
+                    <circle
+                      key={`fill-${i}`}
+                      cx="50"
+                      cy="50"
+                      r={radius}
+                      fill="none"
+                      strokeWidth="7"
+                      strokeLinecap="butt"
+                      strokeDasharray={`${liveDrawLen} ${circumference - liveDrawLen}`}
+                      strokeDashoffset={dashOffset}
+                      transform={`rotate(${rotation} 50 50)`}
+                      className={`dial-segment dial-segment-${seg.type} dial-segment-${status}`}
+                    />
+                  );
+                })}
+              </>
+            );
           })()}
         </svg>
         <div className={`timer-display ${phaseClass}${isFinished ? ' pulse' : ''}`}>
