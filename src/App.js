@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import './App.css';
 import ExerciseSelector from './components/ExerciseSelector';
 import ExerciseTimer from './components/ExerciseTimer';
@@ -18,7 +18,31 @@ const LS_REST_TIME    = 'abra-rest-time';
 const LS_LISTS        = 'abra-lists';
 const LS_ACTIVE_LIST  = 'abra-active-list';
 
-const APP_VERSION = '1.1.2';
+const APP_VERSION = '1.2.0';
+
+// Resolves a BCP-47 lang tag (e.g. "fr-FR") to a human-readable name (e.g. "French (France)")
+// so voice search can match on language name, not just the raw code.
+let langDisplayNames;
+try {
+  langDisplayNames = new Intl.DisplayNames(['en'], { type: 'language' });
+} catch {
+  langDisplayNames = null;
+}
+// Some platforms (Android's TTS engine) report Java-locale-style tags
+// ("hi_IN", "bs_BA_#Cyrl") instead of BCP-47 ("hi-IN") — Intl.DisplayNames
+// throws on those, so normalize before resolving.
+const toBcp47 = (lang) => lang.split('#')[0].replace(/_/g, '-').replace(/-+$/, '');
+
+const langLabelCache = new Map();
+const getLangLabel = (lang) => {
+  if (langLabelCache.has(lang)) return langLabelCache.get(lang);
+  let label = '';
+  if (langDisplayNames) {
+    try { label = langDisplayNames.of(toBcp47(lang)) || ''; } catch { label = ''; }
+  }
+  langLabelCache.set(lang, label);
+  return label;
+};
 
 const randomId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 
@@ -70,10 +94,10 @@ function App() {
     return new Set(exercises.filter(e => !excluded.has(e.id)).map(e => e.id));
   });
 
-  // Persisted: equipment filter (default: all enabled)
+  // Persisted: equipment filter (default: none enabled)
   const [enabledEquipment, setEnabledEquipment] = useState(() => {
     const saved = lsGet(LS_EQUIPMENT, null);
-    return new Set(saved ?? ALL_EQUIPMENT);
+    return new Set(saved ?? []);
   });
 
   // Persisted: voice settings
@@ -84,7 +108,9 @@ function App() {
   // Settings panel
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [voiceDropOpen, setVoiceDropOpen] = useState(false);
+  const [voiceSearch, setVoiceSearch] = useState('');
   const voicePickerListRef = useRef(null);
+  const voiceSearchInputRef = useRef(null);
 
   // ── Persistence effects ──────────────────────────────────────
   useEffect(() => {
@@ -124,10 +150,14 @@ function App() {
     if (!settingsOpen) setVoiceDropOpen(false);
   }, [settingsOpen]);
 
-  // Scroll selected voice into view when dropdown opens
+  // Reset search and focus input when dropdown opens; scroll selected voice into view
   useEffect(() => {
-    if (!voiceDropOpen) return;
+    if (!voiceDropOpen) {
+      setVoiceSearch('');
+      return;
+    }
     const id = setTimeout(() => {
+      voiceSearchInputRef.current?.focus();
       const selected = voicePickerListRef.current?.querySelector('.voice-picker-item.selected');
       selected?.scrollIntoView({ block: 'nearest' });
     }, 0);
@@ -198,9 +228,9 @@ function App() {
     });
   };
 
-  const addToList = (exercise) => {
+  const addToList = (exercise, listId) => {
     setWorkoutLists(prev => prev.map(list =>
-      list.id === activeListId
+      list.id === listId
         ? { ...list, exercises: [...list.exercises, { ...exercise, uid: randomId() }] }
         : list
     ));
@@ -269,6 +299,16 @@ function App() {
     }, 1000);
   };
 
+  const filteredVoices = useMemo(() => {
+    const q = voiceSearch.trim().toLowerCase();
+    if (!q) return voices;
+    return voices.filter(v =>
+      v.name.toLowerCase().includes(q) ||
+      v.lang.toLowerCase().includes(q) ||
+      getLangLabel(v.lang).toLowerCase().includes(q)
+    );
+  }, [voices, voiceSearch]);
+
   const generateWorkout = () => {
     const eligible = exercises.filter(e => selectedIds.has(e.id) && isAvailable(enabledEquipment)(e));
     if (eligible.length === 0) return;
@@ -329,20 +369,31 @@ function App() {
                     </svg>
                   </button>
                   {voiceDropOpen && (
-                    <div className="voice-picker-list" ref={voicePickerListRef}>
-                      {voices.length === 0 && (
-                        <p className="voice-empty">No voices available</p>
-                      )}
-                      {voices.map(v => (
-                        <button
-                          key={v.voiceURI}
-                          className={`voice-picker-item${v.voiceURI === selectedVoiceURI ? ' selected' : ''}`}
-                          onClick={() => { setSelectedVoiceURI(v.voiceURI); setVoiceDropOpen(false); }}
-                        >
-                          <span className="voice-name">{v.name}</span>
-                          <span className="voice-lang">{v.lang}</span>
-                        </button>
-                      ))}
+                    <div className="voice-picker-dropdown">
+                      <input
+                        ref={voiceSearchInputRef}
+                        type="text"
+                        className="voice-search-input"
+                        placeholder="Search voices…"
+                        value={voiceSearch}
+                        onChange={e => setVoiceSearch(e.target.value)}
+                        onClick={e => e.stopPropagation()}
+                      />
+                      <div className="voice-picker-list" ref={voicePickerListRef}>
+                        {filteredVoices.length === 0 && (
+                          <p className="voice-empty">No voices found</p>
+                        )}
+                        {filteredVoices.map((v, i) => (
+                          <button
+                            key={`${v.voiceURI}-${i}`}
+                            className={`voice-picker-item${v.voiceURI === selectedVoiceURI ? ' selected' : ''}`}
+                            onClick={() => { setSelectedVoiceURI(v.voiceURI); setVoiceDropOpen(false); }}
+                          >
+                            <span className="voice-name">{v.name}</span>
+                            <span className="voice-lang">{getLangLabel(v.lang) || v.lang}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -380,7 +431,7 @@ function App() {
             onToggleEquipment={toggleEquipment}
             onGenerate={generateWorkout}
             onAddToList={addToList}
-            activeListName={workoutLists.find(l => l.id === activeListId)?.name ?? ''}
+            lists={workoutLists}
           />
         )}
         {activeTab === 'lists' && (
@@ -394,6 +445,9 @@ function App() {
             onRemoveExercise={removeFromList}
             onReorderExercise={reorderList}
             onStartWorkout={startListWorkout}
+            selectedIds={selectedIds}
+            onToggleSelected={toggleExercise}
+            onAddToList={addToList}
           />
         )}
         {activeTab === 'workout' && workout && (

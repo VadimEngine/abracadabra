@@ -1,0 +1,183 @@
+/* ── Preview overlay ─────────────────────────────────────────── */
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.preview-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 360px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  touch-action: pan-y;
+  will-change: transform;
+}
+
+.preview-gif {
+  width: 100%;
+  border-radius: 14px;
+  max-height: 50vh;
+  object-fit: contain;
+  background: white;
+  pointer-events: none;
+}
+
+.preview-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.preview-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #e8e8e8;
+  text-align: center;
+}
+
+.preview-equipment {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Shuffle pool checkbox (next to the name) ────────────────── */
+.preview-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s;
+}
+
+.preview-checkbox.checked {
+  background: #4ade80;
+  border-color: #4ade80;
+}
+
+.preview-check-mark {
+  font-size: 0.7rem;
+  color: #111;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ── Add-to-list picker ──────────────────────────────────────── */
+.preview-list-picker {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+}
+
+.preview-list-picker-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f2f2f2;
+  text-align: center;
+}
+
+.preview-list-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.preview-list-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e8e8e8;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.preview-list-option:active {
+  opacity: 0.85;
+}
+
+.preview-list-option.added {
+  background: rgba(74, 222, 128, 0.18);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
+.preview-list-option-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.preview-list-option-count {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.14);
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+
+.preview-list-option-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 18px;
+  text-align: center;
+}
+
+.preview-close {
+  padding: 10px 36px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+
+.preview-close:active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}

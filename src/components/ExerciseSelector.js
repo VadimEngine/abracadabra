@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './ExerciseSelector.css';
+import ExercisePreviewModal from './ExercisePreviewModal';
 
 function Stepper({ label, value, unit, onDecrement, onIncrement }) {
   return (
@@ -39,14 +40,11 @@ function ExerciseSelector({
   onToggleEquipment,
   onGenerate,
   onAddToList,
-  activeListName,
+  lists,
 }) {
-  const [previewExercise, setPreviewExercise] = useState(null);
+  const [previewIndex, setPreviewIndex] = useState(null);
   const [equipOpen, setEquipOpen] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
-  const [addedFeedback, setAddedFeedback] = useState(false);
-
-  useEffect(() => { setAddedFeedback(false); }, [previewExercise]);
 
   // Only show exercises whose required equipment is currently enabled
   const visibleExercises = exercises.filter(e =>
@@ -180,7 +178,7 @@ function ExerciseSelector({
         />
 
         <ul className="exercise-checklist">
-          {visibleExercises.map(ex => {
+          {visibleExercises.map((ex, index) => {
             const checked = selectedIds.has(ex.id);
             return (
               <li
@@ -198,7 +196,7 @@ function ExerciseSelector({
                   src={process.env.PUBLIC_URL + ex.gif}
                   alt={ex.name}
                   className="exercise-thumb"
-                  onClick={() => setPreviewExercise(ex)}
+                  onClick={() => setPreviewIndex(index)}
                 />
               </li>
             );
@@ -217,44 +215,17 @@ function ExerciseSelector({
       </button>
 
       {/* Preview modal */}
-      {previewExercise && (
-        <div className="preview-overlay" onClick={() => setPreviewExercise(null)}>
-          <div className="preview-card" onClick={e => e.stopPropagation()}>
-            <img
-              src={process.env.PUBLIC_URL + previewExercise.gif}
-              alt={previewExercise.name}
-              className="preview-gif"
-            />
-            <p className="preview-name">{previewExercise.name}</p>
-            <p className="preview-equipment">
-              {previewExercise.equipment.length > 0
-                ? previewExercise.equipment.join(', ')
-                : 'No equipment'}
-            </p>
-            {onAddToList && (
-              <button
-                className={`preview-add-btn${addedFeedback ? ' added' : ''}`}
-                onClick={() => {
-                  onAddToList(previewExercise);
-                  setAddedFeedback(true);
-                  setTimeout(() => setAddedFeedback(false), 1500);
-                }}
-              >
-                {addedFeedback
-                  ? '✓ Added'
-                  : activeListName
-                    ? `Add to "${activeListName}"`
-                    : 'Add to List'}
-              </button>
-            )}
-            <button
-              className="preview-close"
-              onClick={() => setPreviewExercise(null)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
+      {previewIndex !== null && (
+        <ExercisePreviewModal
+          items={visibleExercises}
+          index={previewIndex}
+          onIndexChange={setPreviewIndex}
+          onClose={() => setPreviewIndex(null)}
+          selectedIds={selectedIds}
+          onToggleSelected={onToggle}
+          lists={lists}
+          onAddToList={onAddToList}
+        />
       )}
     </div>
   );

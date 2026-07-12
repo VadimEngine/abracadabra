@@ -175,7 +175,7 @@
   transform: rotate(180deg);
 }
 
-.voice-picker-list {
+.voice-picker-dropdown {
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
@@ -183,11 +183,38 @@
   background: #1c1c1c;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9px;
-  max-height: 220px;
-  overflow-y: auto;
   z-index: 10;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.voice-search-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.84rem;
+  padding: 8px 12px;
+}
+
+.voice-search-input:focus {
+  outline: none;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.voice-search-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.voice-picker-list {
+  max-height: 180px;
+  overflow-y: auto;
   overscroll-behavior: contain;
+  /* Forces its own compositing layer — works around an Android Chrome bug
+     where old rows visually linger after the list shrinks (e.g. filtering
+     down to fewer items), even though they've been removed from the DOM. */
+  transform: translateZ(0);
 }
 
 .voice-picker-list::-webkit-scrollbar {
@@ -246,9 +273,12 @@
 
 .voice-lang {
   flex-shrink: 0;
+  max-width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 0.74rem;
   color: rgba(255, 255, 255, 0.28);
-  font-variant-numeric: tabular-nums;
 }
 
 .voice-picker-item.selected .voice-lang {

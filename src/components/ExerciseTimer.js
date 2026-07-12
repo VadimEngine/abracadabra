@@ -113,9 +113,10 @@ function ExerciseTimer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, isFinished, phaseIndex, phaseType, currentExercise]);
 
-  // Countdown 3-2-1 during getReady and switch
+  // Countdown 3-2-1 during getReady, switch, and the final seconds of work
   useEffect(() => {
-    if (!isRunning || (phaseType !== 'getReady' && phaseType !== 'switch')) return;
+    if (!isRunning) return;
+    if (phaseType !== 'getReady' && phaseType !== 'switch' && phaseType !== 'work') return;
     if (timeRemaining >= 1 && timeRemaining <= 3) speak(String(timeRemaining));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, phaseType, timeRemaining]);
