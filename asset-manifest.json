@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/abracadabra/static/css/main.240edfd0.css",
-    "main.js": "/abracadabra/static/js/main.7d56852f.js",
+    "main.css": "/abracadabra/static/css/main.35f974c5.css",
+    "main.js": "/abracadabra/static/js/main.e200132a.js",
     "index.html": "/abracadabra/index.html",
-    "main.240edfd0.css.map": "/abracadabra/static/css/main.240edfd0.css.map",
-    "main.7d56852f.js.map": "/abracadabra/static/js/main.7d56852f.js.map"
+    "main.35f974c5.css.map": "/abracadabra/static/css/main.35f974c5.css.map",
+    "main.e200132a.js.map": "/abracadabra/static/js/main.e200132a.js.map"
   },
   "entrypoints": [
-    "static/css/main.240edfd0.css",
-    "static/js/main.7d56852f.js"
+    "static/css/main.35f974c5.css",
+    "static/js/main.e200132a.js"
   ]
 }
