@@ -74,8 +74,19 @@ function ExerciseTimer({
   const [isFinished, setIsFinished] = useState(false);
   const [completionMessage, setCompletionMessage] = useState('');
   const [flexFeedback, setFlexFeedback] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(() => !document.hidden);
 
   const spokenPhaseRef = useRef(-1);
+
+  // requestAnimationFrame (which canvas-confetti relies on) is paused while
+  // the browser tab/window is in the background, so a running setInterval
+  // just piles up confetti bursts that all animate at once on refocus.
+  // Track page visibility so we can pause firing while hidden.
+  useEffect(() => {
+    const handleVisibility = () => setIsPageVisible(!document.hidden);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   // Voice config ref — reads latest settings without causing effect re-runs
   const voiceRef = useRef({ enabled: voiceEnabled, voices, uri: selectedVoiceURI });
@@ -166,9 +177,10 @@ function ExerciseTimer({
   }, [isFinished]);
 
   // Confetti only falls while the finished screen is actually visible —
-  // switching tabs away stops it immediately.
+  // switching tabs away (or the whole browser tab losing focus) stops it
+  // immediately, so calls don't pile up and dump all at once on return.
   useEffect(() => {
-    if (!isFinished || !isActive) return;
+    if (!isFinished || !isActive || !isPageVisible) return;
     const fire = () => confetti({ particleCount: 120, spread: 75, origin: { y: 0.55 } });
 
     // Fire immediately and then continuously every 500ms
@@ -176,7 +188,7 @@ function ExerciseTimer({
     const intervalId = setInterval(fire, 500);
 
     return () => clearInterval(intervalId);
-  }, [isFinished, isActive]);
+  }, [isFinished, isActive, isPageVisible]);
 
   // Cancel speech on unmount
   useEffect(() => {
@@ -323,6 +335,7 @@ function ExerciseTimer({
         )}
       </div>
 
+      <div className="timer-card">
       <div className="timer-dial">
         <svg className="timer-dial-ring" viewBox="0 0 100 100">
           {(() => {
@@ -348,9 +361,8 @@ function ExerciseTimer({
             const gapDeg = Math.min(10, Math.max(2, avgAngle * 0.2));
             const minDrawDeg = 1.5; // never let a very short segment vanish entirely
 
-            // Center the first segment on the top of the dial (rather than
-            // starting it there) so the ring reads symmetrically at a glance.
-            const rotation = -90 - segAngles[0] / 2;
+            // Start the first segment right at the top (12 o'clock) of the dial.
+            const rotation = -90;
 
             return (
               <>
@@ -412,9 +424,10 @@ function ExerciseTimer({
           <div className="time-digits">{timeRemaining}</div>
         </div>
       </div>
+      </div>
 
       <div className="timer-controls">
-        <button className="ctrl-btn primary" onClick={handleStart}>
+        <button className={`ctrl-btn primary${isRunning ? ' pause' : ''}`} onClick={handleStart}>
           {isRunning ? 'Pause' : isFinished ? 'Restart' : 'Start'}
         </button>
         <button className="ctrl-btn secondary" onClick={handleReset}>Reset</button>

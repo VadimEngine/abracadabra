@@ -4,6 +4,7 @@ import ExerciseSelector from './components/ExerciseSelector';
 import ExerciseTimer from './components/ExerciseTimer';
 import WorkoutLists from './components/WorkoutLists';
 import exercises from './data/exercises.json';
+import { APP_VERSION } from './version';
 
 const LS_EXCLUDED     = 'abra-excluded';
 const LS_VOICE_ON     = 'abra-voice-enabled';
@@ -17,8 +18,6 @@ const LS_REST_EVERY   = 'abra-rest-every';
 const LS_REST_TIME    = 'abra-rest-time';
 const LS_LISTS        = 'abra-lists';
 const LS_ACTIVE_LIST  = 'abra-active-list';
-
-const APP_VERSION = '1.2.1';
 
 // Resolves a BCP-47 lang tag (e.g. "fr-FR") to a human-readable name (e.g. "French (France)")
 // so voice search can match on language name, not just the raw code.

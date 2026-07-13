@@ -181,6 +181,16 @@
 }
 
 /* ── Timer dial (segmented ring + circular timer face) ──────────── */
+.timer-card {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+}
+
 .timer-dial {
   flex-shrink: 0;
   position: relative;
@@ -329,8 +339,13 @@
 }
 
 .ctrl-btn.primary {
-  background: #e8e8e8;
-  color: #111;
+  background: #4ade80;
+  color: #0a0a0a;
+}
+
+.ctrl-btn.primary.pause {
+  background: #fbbf24;
+  color: #0a0a0a;
 }
 
 .ctrl-btn.secondary {
