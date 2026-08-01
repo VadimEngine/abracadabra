@@ -194,57 +194,17 @@
   color: #e8e8e8;
 }
 
-/* ── Equipment combobox ──────────────────────────────────────── */
-.equip-combobox {
+/* ── Equipment chips ─────────────────────────────────────────── */
+.equip-section {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.equip-trigger {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 7px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 8px;
-  color: inherit;
-  cursor: pointer;
-  transition: border-color 0.15s;
-  text-align: left;
-}
-
-.equip-trigger.open {
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-.equip-trigger:active {
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.equip-trigger-label {
+.equip-section-label {
   font-size: 0.88rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
-}
-
-.equip-badge {
-  margin-left: auto;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.4);
-  font-variant-numeric: tabular-nums;
-}
-
-.equip-badge.filtered {
-  color: #f59e0b;
-}
-
-.equip-chevron {
-  font-size: 0.62rem;
-  color: rgba(255, 255, 255, 0.3);
-  flex-shrink: 0;
 }
 
 .equip-options {

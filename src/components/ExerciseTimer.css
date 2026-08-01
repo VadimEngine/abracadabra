@@ -338,6 +338,11 @@
   transform: scale(0.97);
 }
 
+.ctrl-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .ctrl-btn.primary {
   background: #4ade80;
   color: #0a0a0a;

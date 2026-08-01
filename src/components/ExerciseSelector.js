@@ -43,7 +43,6 @@ function ExerciseSelector({
   lists,
 }) {
   const [previewIndex, setPreviewIndex] = useState(null);
-  const [equipOpen, setEquipOpen] = useState(false);
   const [timerOpen, setTimerOpen] = useState(false);
 
   // Only show exercises whose required equipment is currently enabled
@@ -53,13 +52,6 @@ function ExerciseSelector({
 
   const selectedVisibleCount = visibleExercises.filter(e => selectedIds.has(e.id)).length;
   const willGenerate = Math.min(rounds, selectedVisibleCount);
-
-  // Equipment summary label for the trigger button
-  const equipSummary = enabledEquipment.size === allEquipment.length
-    ? 'All'
-    : enabledEquipment.size === 0
-      ? 'None'
-      : `${enabledEquipment.size}/${allEquipment.length}`;
 
   return (
     <div className="setup-tab">
@@ -138,34 +130,22 @@ function ExerciseSelector({
           </div>
         </div>
 
-        {/* Equipment combobox */}
+        {/* Equipment chips */}
         {allEquipment.length > 0 && (
-          <div className="equip-combobox">
-            <button
-              className={`equip-trigger${equipOpen ? ' open' : ''}`}
-              onClick={() => setEquipOpen(o => !o)}
-            >
-              <span className="equip-trigger-label">Equipment</span>
-              <span className={`equip-badge${enabledEquipment.size < allEquipment.length ? ' filtered' : ''}`}>
-                {equipSummary}
-              </span>
-              <span className="equip-chevron">{equipOpen ? '▴' : '▾'}</span>
-            </button>
-
-            {equipOpen && (
-              <div className="equip-options">
-                {allEquipment.map(eq => (
-                  <button
-                    key={eq}
-                    className={`equip-chip${enabledEquipment.has(eq) ? ' on' : ''}`}
-                    onClick={() => onToggleEquipment(eq)}
-                  >
-                    <span className="equip-check">{enabledEquipment.has(eq) ? '✓' : ''}</span>
-                    {eq}
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="equip-section">
+            <span className="equip-section-label">Equipment</span>
+            <div className="equip-options">
+              {allEquipment.map(eq => (
+                <button
+                  key={eq}
+                  className={`equip-chip${enabledEquipment.has(eq) ? ' on' : ''}`}
+                  onClick={() => onToggleEquipment(eq)}
+                >
+                  <span className="equip-check">{enabledEquipment.has(eq) ? '✓' : ''}</span>
+                  {eq}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 

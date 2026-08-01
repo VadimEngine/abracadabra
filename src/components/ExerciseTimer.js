@@ -206,6 +206,19 @@ function ExerciseTimer({
     setIsRunning(r => !r);
   };
 
+  const handleSkip = () => {
+    if (isFinished) return;
+    window.speechSynthesis?.cancel();
+    if (phaseIndex < phases.length - 1) {
+      const next = phaseIndex + 1;
+      setPhaseIndex(next);
+      setTimeRemaining(phases[next].duration);
+    } else {
+      setIsRunning(false);
+      setIsFinished(true);
+    }
+  };
+
   const handleReset = () => {
     window.speechSynthesis?.cancel();
     spokenPhaseRef.current = -1;
@@ -430,6 +443,7 @@ function ExerciseTimer({
         <button className={`ctrl-btn primary${isRunning ? ' pause' : ''}`} onClick={handleStart}>
           {isRunning ? 'Pause' : isFinished ? 'Restart' : 'Start'}
         </button>
+        <button className="ctrl-btn secondary" onClick={handleSkip} disabled={isFinished}>Skip</button>
         <button className="ctrl-btn secondary" onClick={handleReset}>Reset</button>
       </div>
     </div>
